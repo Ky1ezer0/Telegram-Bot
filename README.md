@@ -1,7 +1,6 @@
-# Telegram-Bot
+# Telegram-Bot: Little Assistant 
 
 It is Telegram Bot act like a tools.
-Tg name:@Ky1ezBot
 
 # Command
 * /weather
