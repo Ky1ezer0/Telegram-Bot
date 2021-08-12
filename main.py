@@ -15,4 +15,25 @@ def weather(message):
     weather = r.html.xpath('//*[@id="ming"]/text()', first=True)
     bot.reply_to(message, weather)
 
+import datetime as dt
+@bot.message_handler(commands=['car'])
+def weather(message):
+    session = HTMLSession()
+    today = dt.date.today()
+    today = (str(today).split('-'))
+    web = "https://programme.rthk.hk/channel/radio/trafficnews/index.php?d={}{}{}".format(today[0],today[1],today[2])
+    r = session.get(web)
+    article = r.html.xpath('//*[@id="content"]/div/ul')
+    article_rev = []
+    carInfo = ""
+    if article == []:
+        carInfo = "Currently no news."
+    else:
+        for news in article:
+            article_rev.insert(0,news)
+
+        for info in article_rev[-10:]:
+            carInfo += info.text+"\n\n"
+    bot.reply_to(message, carInfo)
+
 bot.polling()
