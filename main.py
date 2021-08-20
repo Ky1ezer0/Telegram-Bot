@@ -12,8 +12,16 @@ def weather(message):
 def weather(message):
     session = HTMLSession()
     r = session.get('https://www.hko.gov.hk/textonly/v2/forecast/chinesewx2.htm')
-    weather = r.html.xpath('//*[@id="ming"]/text()', first=True)
-    bot.reply_to(message, weather)
+    weather = r.html.xpath("//pre[@id='ming']/text()")
+    try:
+        p = r.html.xpath("//pre[@id='ming']/p/text()", first=True)
+    except ValueError:
+        pass
+    if " " in p:
+        bot.reply_to(message, weather[0]+p+"\n"+weather[1])
+    else:
+        bot.reply_to(message, weather[0]+weather[1])
+    
 
 import datetime as dt
 @bot.message_handler(commands=['car'])
