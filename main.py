@@ -1,10 +1,15 @@
+import os
+from dotenv import load_dotenv
 import telebot
 from requests_html import HTMLSession
 
-bot = telebot.TeleBot("1940148984:AAELX6QJlYiSplwpmb4_dzsvGz04ryZUjDA")
+#Setup Bot Token
+load_dotenv()
+API_KEY = os.getenv('API_KEY')
+bot = telebot.TeleBot(API_KEY)
 
 @bot.message_handler(commands=['start','help'])
-def weather(message):
+def start(message):
     text = "Hello! This Bot is still in Beta! Current available commands are: /weather, /car. There has a hidden function to my gf to calulate the time."
     bot.reply_to(message, text)
 
@@ -21,7 +26,6 @@ def weather(message):
         bot.reply_to(message, weather[0]+p+"\n"+weather[1])
     else:
         bot.reply_to(message, weather[0]+weather[1])
-    
 
 import datetime as dt
 @bot.message_handler(commands=['car'])
