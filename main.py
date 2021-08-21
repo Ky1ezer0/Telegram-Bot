@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 import telebot
 from requests_html import HTMLSession
-import datetime as dt
+from datetime import datetime
 
 def main():
     #Setup Bot Token
@@ -31,9 +31,9 @@ def main():
 
 
     @bot.message_handler(commands=['car'])
-    def weather(message):
+    def car(message):
         session = HTMLSession()
-        today = dt.date.today()
+        today = datetime.date.today()
         today = (str(today).split('-'))
         web = "https://programme.rthk.hk/channel/radio/trafficnews/index.php?d={}{}{}".format(today[0],today[1],today[2])
         r = session.get(web)
@@ -56,9 +56,14 @@ def main():
             start_time, end_time = message.text.split('-')
             s_h, s_m= start_time.split(':')
             e_h, e_m= end_time.split(':')
-            start_time = dt.datetime.strptime(start_time,'%H:%M')
-            end_time = dt.datetime.strptime(end_time,'%H:%M')
+            start_time = datetime.fromisoformat('2000-01-01 {}:{}'.format(s_h,s_m))
+            if s_h > e_h:
+                end_time = datetime.fromisoformat('2000-01-02 {}:{}'.format(e_h,e_m))
+            else:
+                end_time = datetime.fromisoformat('2000-01-01 {}:{}'.format(e_h,e_m))
             result = end_time - start_time
+            h, m = result.__str__()[:-3].split(":")
+            result = "相差{}小時{}分鐘".format(h,m)
             bot.reply_to(message, result)
         except ValueError:
             result = "It seems not a correct format."
