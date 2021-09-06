@@ -5,79 +5,76 @@ from requests_html import HTMLSession
 from datetime import datetime
 
 
-def main():
-    # Setup Bot Token
-    load_dotenv()
-    API_KEY = os.getenv("API_KEY")
-    bot = telebot.TeleBot(API_KEY)
 
-    @bot.message_handler(commands=["start", "help"])
-    def start(message):
-        text = "Hello! This Bot is still in Beta! Current available commands are: /weather, /car. There has a hidden function to my gf to calulate the time."
-        bot.reply_to(message, text)
+# Setup Bot Token
+load_dotenv()
+API_KEY = os.getenv("API_KEY")
+bot = telebot.TeleBot(API_KEY)
 
-    @bot.message_handler(commands=["weather"])
-    def weather(message):
-        session = HTMLSession()
-        r = session.get("https://www.hko.gov.hk/textonly/v2/forecast/chinesewx2.htm")
-        weather = r.html.xpath("//pre[@id='ming']/text()")
-        try:
-            p = r.html.xpath("//pre[@id='ming']/p/text()", first=True)
-        except ValueError:
-            pass
-        if p is True:  # needed Test
-            bot.reply_to(message, weather[0] + p + "\n" + weather[1])
-        else:
-            bot.reply_to(message, weather[0])
+@bot.message_handler(commands=["start", "help"])
+def start(message):
+    text = "Hello! This Bot is still in Beta! Current available commands are: /weather, /car. There has a hidden function to my gf to calulate the time."
+    bot.reply_to(message, text)
 
-    @bot.message_handler(commands=["car"])
-    def car(message):
-        session = HTMLSession()
-        today = datetime.today().date()
-        today = str(today).split("-")
-        web = "https://programme.rthk.hk/channel/radio/trafficnews/index.php?d={}{}{}".format(
-            today[0], today[1], today[2]
-        )
-        r = session.get(web)
-        article = r.html.xpath('//*[@id="content"]/div/ul')
-        article_rev = []
-        carInfo = ""
-        if article == []:
-            carInfo = "Currently no news."
-        else:
-            for news in article:
-                article_rev.insert(0, news)
+@bot.message_handler(commands=["weather"])
+def weather(message):
+    session = HTMLSession()
+    r = session.get("https://www.hko.gov.hk/textonly/v2/forecast/chinesewx2.htm")
+    weather = r.html.xpath("//pre[@id='ming']/text()")
+    try:
+        p = r.html.xpath("//pre[@id='ming']/p/text()", first=True)
+    except ValueError:
+        pass
+    if p is True:  # needed Test
+        bot.reply_to(message, weather[0] + p + "\n" + weather[1])
+    else:
+        bot.reply_to(message, weather[0])
 
-            for info in article_rev[-10:]:
-                carInfo += info.text + "\n\n"
-        bot.reply_to(message, carInfo)
-
-    @bot.message_handler(
-        func=lambda message: message.text is not None
-        and len(message.text) == 11
-        and ":" in message.text
-        and "-" in message.text
+@bot.message_handler(commands=["car"])
+def car(message):
+    session = HTMLSession()
+    today = datetime.today().date()
+    today = str(today).split("-")
+    web = "https://programme.rthk.hk/channel/radio/trafficnews/index.php?d={}{}{}".format(
+        today[0], today[1], today[2]
     )
-    def cal_time(message):
-        try:
-            start_time, end_time = message.text.split("-")
-            s_h, s_m = start_time.split(":")
-            e_h, e_m = end_time.split(":")
-            start_time = datetime.fromisoformat("2000-01-01 {}:{}".format(s_h, s_m))
-            if s_h > e_h:
-                end_time = datetime.fromisoformat("2000-01-02 {}:{}".format(e_h, e_m))
-            else:
-                end_time = datetime.fromisoformat("2000-01-01 {}:{}".format(e_h, e_m))
-            result = end_time - start_time
-            h, m = result.__str__()[:-3].split(":")
-            result = "相差{}小時{}分鐘".format(h, m)
-            bot.reply_to(message, result)
-        except ValueError:
-            result = "It seems not a correct format."
-            bot.reply_to(message, result)
+    r = session.get(web)
+    article = r.html.xpath('//*[@id="content"]/div/ul')
+    article_rev = []
+    carInfo = ""
+    if article == []:
+        carInfo = "Currently no news."
+    else:
+        for news in article:
+            article_rev.insert(0, news)
 
-    bot.polling()
+        for info in article_rev[-10:]:
+            carInfo += info.text + "\n\n"
+    bot.reply_to(message, carInfo)
 
+@bot.message_handler(
+    func=lambda message: message.text is not None
+    and len(message.text) == 11
+    and ":" in message.text
+    and "-" in message.text
+)
+def cal_time(message):
+    try:
+        start_time, end_time = message.text.split("-")
+        s_h, s_m = start_time.split(":")
+        e_h, e_m = end_time.split(":")
+        start_time = datetime.fromisoformat("2000-01-01 {}:{}".format(s_h, s_m))
+        if s_h > e_h:
+            end_time = datetime.fromisoformat("2000-01-02 {}:{}".format(e_h, e_m))
+        else:
+            end_time = datetime.fromisoformat("2000-01-01 {}:{}".format(e_h, e_m))
+        result = end_time - start_time
+        h, m = result.__str__()[:-3].split(":")
+        result = "相差{}小時{}分鐘".format(h, m)
+        bot.reply_to(message, result)
+    except ValueError:
+        result = "It seems not a correct format."
+        bot.reply_to(message, result)
 
-if __name__ == "__main__":
-    main()
+bot.polling(none_stop=True)
+
