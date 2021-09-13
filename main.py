@@ -20,7 +20,7 @@ def getChatID(message):
 
 def introMarkup():
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(KeyboardButton("天氣"), KeyboardButton("交通消息"))
+    markup.add(KeyboardButton("目前天氣"), KeyboardButton("目前交通消息"))
     markup.add(KeyboardButton("目前位置轉換為文字", request_location=True))
     return markup
 
@@ -30,8 +30,8 @@ def start(message):
     bot.send_message(getChatID(message), text="請選擇功能", reply_markup=introMarkup())
 
 
-@bot.message_handler(func=lambda message: message.text == "天氣")
-def weather(message):
+@bot.message_handler(func=lambda message: message.text == "目前天氣")
+def getWeather(message):
     result = ""
     session = HTMLSession()
     r = session.get("https://www.hko.gov.hk/textonly/v2/forecast/chinesewx2.htm")
@@ -44,26 +44,26 @@ def weather(message):
         if text == weather[1]:
             result += otherInfo
         result += text
-    bot.reply_to(message, result)
+    bot.reply_to(message, result, reply_markup=introMarkup())
 
 
 @bot.message_handler(content_types=["location"])
-def requestLoc(message):
-    if message.reply_to_message.text == "目前位置轉換為文字":
-        longitude = message.location.longitude
-        latitude = message.location.latitude
-        geolocator = Nominatim(user_agent="twmostBot")
-        reverse = partial(geolocator.reverse, language="zh")
-        location = reverse(Point(latitude, longitude))
-        bot.reply_to(
-            message,
-            text=f"讀取成功，目前位置為:{location}",
-            reply_markup=introMarkup(),
-        )
+def getLocation(message):
+    longitude = message.location.longitude
+    latitude = message.location.latitude
+    geolocator = Nominatim(user_agent="twmostBot")
+    reverse = partial(geolocator.reverse, language="zh")
+    location = reverse(Point(latitude, longitude))
+    bot.reply_to(
+        message,
+        text="讀取成功，目前位置為:",
+        reply_markup=introMarkup(),
+    )
+    bot.send_message(getChatID(message), location)
 
 
-@bot.message_handler(commands=["交通消息"])
-def car(message):
+@bot.message_handler(func=lambda message: message.text == "目前交通消息")
+def getCarInfo(message):
     session = HTMLSession()
     today = datetime.today().date()
     today = str(today).split("-")
@@ -84,7 +84,7 @@ def car(message):
 
         for info in article_rev[-10:]:
             carInfo += info.text + "\n\n"
-    bot.reply_to(message, carInfo)
+    bot.reply_to(message, carInfo, reply_markup=introMarkup())
 
 
 bot.polling(none_stop=True)
