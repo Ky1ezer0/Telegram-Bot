@@ -36,13 +36,13 @@ def getWeather(message):
     session = HTMLSession()
     r = session.get("https://www.hko.gov.hk/textonly/v2/forecast/chinesewx2.htm")
     weather = r.html.xpath("//pre[@id='ming']/text()")
-    try:
-        otherInfo = r.html.xpath("//*[@id='ming']/p[1]/text()", first=True)
-    except ValueError:
-        pass
+    otherInfo = r.html.xpath("//*[@id='ming']/p[1]/text()", first=True)
     for text in weather:
-        if text == weather[1]:
-            result += otherInfo
+        try:
+            if text == weather[1]:
+                result += otherInfo
+        except IndexError:
+            pass
         result += text
     bot.reply_to(message, result, reply_markup=introMarkup())
 
