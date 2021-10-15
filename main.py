@@ -87,4 +87,4 @@ def getCarInfo(message):
     bot.reply_to(message, carInfo, reply_markup=introMarkup())
 
 
-bot.polling(none_stop=True)
+bot.infinity_polling(timeout=10, long_polling_timeout=5)
