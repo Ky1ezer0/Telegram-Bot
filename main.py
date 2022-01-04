@@ -88,3 +88,4 @@ def getCarInfo(message):
 
 
 bot.infinity_polling(timeout=10, long_polling_timeout=5)
+# test
